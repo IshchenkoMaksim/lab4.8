@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8
+# -*- coding: utf-8 -*-
 
 """
 B программе создается анимация круга, который движется от левой
@@ -10,39 +10,65 @@ B программе создается анимация круга, котор�
 """
 
 from tkinter import Tk, Canvas
+import math
 
 
-def click(event):
-    c.x = event.x + c.radius
-    c.y = event.y + c.radius
-    motion()
+class Ball:
+    def __init__(self, width=400, height=300):
+        self.x = 1
+        self.y = 1
+        self.t = 0
+        self.dt = 1
+        self.i = 1
+        self.height = height
+        self.width = width
+        self.rad = 20
+
+        self.c = Canvas(root, width=self.width, height=self.height, bg="white")
+        self.c.pack()
+        self.ball = self.c.create_oval(0, 100, 40, 140, fill='green')
+
+        self.c.bind('<Button-1>', self.click)
+        root.after(10, self.frame)
+
+    def click(self, event):
+        p = self.c.coords(self.ball)
+        dx = event.x - p[0]
+        dy = event.y - p[1]
+
+        r = math.sqrt(dx ** 2 + dy ** 2)
+        self.x = dx / r
+        self.y = dy / r
+
+        self.t += self.dt
+        p[0] += self.x + 10
+        p[1] += self.y + 10
+
+        if 200 > dx >= 100 or 200 > dy >= 100 or -200 < dx <= -100 or -200 < dy <= -100:
+            self.dt = 2
+        elif 300 > dx >= 200 or 300 > dy >= 200 or -300 < dx <= -200 or -300 < dy <= -200:
+            self.dt = 4
+        elif 500 > dx >= 300 or 500 > dy >= 300 or -500 < dx <= -300 or -500 < dy <= -300:
+            self.dt = 7
+        elif dx >= 500 or dy >= 500 or dx <= -500 or dy <= -500:
+            self.dt = 10
+        else:
+            self.dt = 1
+
+    def frame(self):
+        self.c.move(self.ball, self.dt * self.x, self.dt * self.y)
+        p = self.c.coords(self.ball)
+
+        if p[1] < 0 or p[1] > self.height - 2 * self.rad:
+            self.y = -self.y
+
+        if p[0] < 0 or p[0] > self.width - 2 * self.rad:
+            self.x = -self.x
+
+        root.after(10, self.frame)
 
 
-def motion():
-    x = c.coords(c.ball)[2]
-    y = c.coords(c.ball)[3]
-    if c.x == x and c.y == y:
-        return
-    if c.x < x:
-        c.move(c.ball, -1, 0)
-    if c.x > x:
-        c.move(c.ball, 1, 0)
-    if c.y < y:
-        c.move(c.ball, 0, -1)
-    if c.y > y:
-        c.move(c.ball, 0, 1)
-    root.after(10, motion)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     root = Tk()
-
-    c = Canvas(root, width=300, height=200, bg="white")
-
-    c.pack()
-    c.radius = 20
-    c.ball = c.create_oval(0, 100, 40, 140, fill='green')
-
-    c.bind("<Button-1>", click)
-
+    Ball()
     root.mainloop()
